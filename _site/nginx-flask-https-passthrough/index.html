@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Passing HTTPS Through From Nginx To Flask &middot; didFinishLaunchingWithOptions
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/syntax.css">
+  <link rel="stylesheet" href="/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+    
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-44985192-2', 'didfinishlaunchingwithoptions.com');
+  ga('send', 'pageview');
+
+</script>
+
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <p class="lead">didFinishLaunchingWithOptions is a collection of programming notes from the field.</p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item">
+        <a href="/">Home</a>
+      </li>
+
+      
+
+      
+      
+        
+          
+        
+      
+        
+          
+            <li class="sidebar-nav-item">
+              <a href="/about.html">About</a>
+            </li>
+          
+        
+      
+        
+      
+        
+          
+        
+      
+
+    </ul>
+
+    <p>&copy; 2014 All wrongs reversed.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="post">
+  <h1 class="post-title">Passing HTTPS Through From Nginx To Flask</h1>
+  <span class="post-date">14 Mar 2014</span>
+  <p>My web application is written in Flask and uses Nginx as a front-end proxy.  Certain routes in Flask use an ssl_required decorator to enfore SSL.</p>
+
+<p>I ran into an issue where Flask did not see that SSL was being used in the request and the result was a redirect loop.  I solved this problem by including this line in my application&#39;s config file:</p>
+<div class="highlight"><pre><code class="newspeak language-newspeak" data-lang="newspeak">  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_SCHEME</span> <span class="s">$s</span><span class="nv">cheme</span><span class="p">;</span>
+</code></pre></div>
+<p>Here&#39;s the full config for your reference.</p>
+<div class="highlight"><pre><code class="newspeak language-newspeak" data-lang="newspeak"><span class="nv">server</span> <span class="p">{</span>
+        <span class="nv">listen</span> <span class="mi">80</span><span class="p">;</span>
+          <span class="nv">listen</span> <span class="mi">443</span><span class="p">;</span>
+          <span class="nv">server_name</span> <span class="nv">www</span><span class="p">.</span><span class="nv">domain</span><span class="p">.</span><span class="nv">com</span><span class="p">;</span>
+        <span class="nv">return</span> <span class="mi">301</span> <span class="s">$s</span><span class="nf">cheme:</span><span class="o">//</span><span class="nv">domain</span><span class="p">.</span><span class="nv">com</span><span class="s">$r</span><span class="nv">equest_uri</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nv">server</span> <span class="p">{</span>
+        <span class="nv">listen</span>   <span class="mi">80</span><span class="p">;</span>
+        <span class="nv">server_name</span> <span class="nv">domain</span><span class="p">.</span><span class="nv">com</span><span class="p">;</span>
+        <span class="nv">access_log</span> <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">log</span><span class="o">/</span><span class="nv">nginx_access</span><span class="p">.</span><span class="nv">log</span><span class="p">;</span>
+        <span class="nv">error_log</span> <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">log</span><span class="o">/</span><span class="nv">nginx_error</span><span class="p">.</span><span class="nv">log</span><span class="p">;</span>
+
+<span class="nv">location</span> <span class="o">/</span><span class="nv">static</span> <span class="p">{</span>
+  <span class="nv">alias</span><span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">www</span><span class="o">/</span><span class="nv">AppSite</span><span class="o">/</span><span class="nv">static</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nv">location</span> <span class="o">/</span> <span class="p">{</span>
+  <span class="nv">include</span>               <span class="nv">uwsgi_params</span><span class="p">;</span>
+  <span class="nv">uwsgi_pass</span>            <span class="nf">unix:</span><span class="o">/</span><span class="nv">tmp</span><span class="o">/</span><span class="nv">webapp</span><span class="p">.</span><span class="nv">sock</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_PYHOME</span>    <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">www</span><span class="o">/</span><span class="nv">AppSite</span><span class="o">/</span><span class="nv">env</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_CHDIR</span>     <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">www</span><span class="o">/</span><span class="nv">AppSite</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_MODULE</span>    <span class="nv">app</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_CALLABLE</span>  <span class="nv">app</span><span class="p">;</span>
+ <span class="p">}</span>
+
+ <span class="nv">error_page</span>                     <span class="mi">404</span>             <span class="o">/</span><span class="mf">404.</span><span class="nv">html</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nv">server</span> <span class="p">{</span>
+        <span class="nv">listen</span>   <span class="mi">443</span> <span class="nv">default</span> <span class="nv">ssl</span><span class="p">;</span>
+
+        <span class="nv">server_name</span> <span class="nv">domain</span><span class="p">.</span><span class="nv">com</span><span class="p">;</span>
+        <span class="nv">access_log</span> <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">log</span><span class="o">/</span><span class="nv">nginx_access</span><span class="p">.</span><span class="nv">log</span><span class="p">;</span>
+        <span class="nv">error_log</span> <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">log</span><span class="o">/</span><span class="nv">nginx_error</span><span class="p">.</span><span class="nv">log</span><span class="p">;</span>
+        <span class="nv">ssl_certificate</span> <span class="o">/</span><span class="nv">etc</span><span class="o">/</span><span class="nv">ssl</span><span class="o">/</span><span class="nv">cert_name</span><span class="p">.</span><span class="nv">crt</span><span class="p">;</span>
+        <span class="nv">ssl_certificate_key</span> <span class="o">/</span><span class="nv">etc</span><span class="o">/</span><span class="nv">ssl</span><span class="o">/</span><span class="nv">cert_name</span><span class="p">.</span><span class="nv">key</span><span class="p">;</span>
+
+<span class="nv">location</span> <span class="o">/</span><span class="nv">static</span> <span class="p">{</span>
+  <span class="nv">alias</span><span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">www</span><span class="o">/</span><span class="nv">AppSite</span><span class="o">/</span><span class="nv">static</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nv">location</span> <span class="o">/</span> <span class="p">{</span>
+  <span class="nv">include</span>               <span class="nv">uwsgi_params</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_SCHEME</span> <span class="s">$s</span><span class="nv">cheme</span><span class="p">;</span>
+  <span class="nv">uwsgi_pass</span>            <span class="nf">unix:</span><span class="o">/</span><span class="nv">tmp</span><span class="o">/</span><span class="nv">webapp</span><span class="p">.</span><span class="nv">sock</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_PYHOME</span>    <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">www</span><span class="o">/</span><span class="nv">AppSite</span><span class="o">/</span><span class="nv">env</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_CHDIR</span>     <span class="o">/</span><span class="nv">var</span><span class="o">/</span><span class="nv">www</span><span class="o">/</span><span class="nv">AppSite</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_MODULE</span>    <span class="nv">app</span><span class="p">;</span>
+  <span class="nv">uwsgi_param</span>           <span class="nv">UWSGI_CALLABLE</span>  <span class="nv">app</span><span class="p">;</span>
+ <span class="p">}</span>
+
+ <span class="nv">error_page</span>                     <span class="mi">404</span>             <span class="o">/</span><span class="mf">404.</span><span class="nv">html</span><span class="p">;</span>
+
+<span class="p">}</span>
+</code></pre></div>
+</div>
+
+<div class="related">
+  <h2>Related Posts</h2>
+  <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="/a-valid-provisioning-profile-for-this-executable-was-not-found">
+            A valid provisioning profile for this executable was not found.
+            <small>15 Mar 2014</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/overlapping-uitextview">
+            Overlapping UITextView Between iOS6 and iOS7
+            <small>14 Mar 2014</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/hello-world">
+            Hello World
+            <small>06 Mar 2014</small>
+          </a>
+        </h3>
+      </li>
+    
+  </ul>
+</div>
+
+    </div>
+
+  </body>
+</html>
+
