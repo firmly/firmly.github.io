@@ -6,14 +6,13 @@ pygments:         true
 permalink: /:title
 
 # Setup
-title:            didFinishLaunchingWithOptions
-tagline:          'iOS Notes From The Field'
-#description:      'didFinishLaunchingWithOptions is a collection of iOS notes from the field by <a href="https://twitter.com/raj" target="_blank">@raj</a>.'
-description:      'didFinishLaunchingWithOptions is a collection of programming notes from the field.'
+title:            The Firmly Blog
+tagline:          'The Firmly Blog'
+description:      'Your department, company, and customers: all together now.'
 
 
 author:
   name:           'Raj'
-  url:            https://twitter.com/raj
+  url:            https://blog.firmly.co
 
 paginate:         5
