@@ -1,8 +1,7 @@
 ---
 layout: page
 title: About
-permalink: /:title
----
+permalink: /about
 
 
 Hey there!  We're building Firmly, a web and mobile communications service for businesses.  
